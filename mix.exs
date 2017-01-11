@@ -30,6 +30,8 @@ defmodule Backtrex.Mixfile do
   defp deps do
     [
       {:credo, "~> 0.5", only: [:dev, :test]},
+      {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.14", only: :dev},
     ]
   end
 end
