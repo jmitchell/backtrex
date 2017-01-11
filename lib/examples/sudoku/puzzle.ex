@@ -103,7 +103,7 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
   @doc """
   Get value of cell at `cell_id` in the `puzzle`.
 
-  Returns `:empty` if no value associated with the `cell_id`.
+  Returns `:_` (unoccupied) if no value associated with the `cell_id`.
   """
   @spec cell_value(puzzle, cell_id) :: cell_value
   def cell_value(puzzle, {_r, _c} = cell_id) do
@@ -121,8 +121,8 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
   Returns whether `puzzle` is valid.
 
   Each of `puzzle`'s 81 cells must be occupied by a number from 1-9,
-  inclusive, or the `:empty` atom. Cells with no value are implictly
-  `:empty`.
+  inclusive, or the `:_` atom which means "unoccupied". Cells with no
+  value are implictly `:_`.
 
   Additionally, no individual row, column, nor sector may have repeated
   cell number values. Sectors are the `puzzle`'s nine 3x3 sub-grids.
