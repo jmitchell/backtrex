@@ -88,19 +88,6 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
   end
 
   @doc """
-  9-cell rows, columns, and sectors on the Sudoku grid.
-
-  Each region must have no repeated cell values. See `valid?`.
-  """
-  @spec regions() :: Enum.t
-  @lint {Credo.Check.Refactor.PipeChainStart, false}
-         # see https://github.com/rrrene/credo/issues/280
-  def regions do
-    (for i <- 0..8, do: [row(i), column(i), sector(i)])
-    |> Stream.concat()
-  end
-
-  @doc """
   Get value of cell at `cell_id` in the `puzzle`.
 
   Returns `:_` (unoccupied) if no value associated with the `cell_id`.
@@ -141,6 +128,19 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
   def valid?(puzzle) do
     regions()
     |> no_counterexample?(&valid_region?(puzzle, &1))
+  end
+
+  @doc """
+  9-cell rows, columns, and sectors on the puzzle grid.
+
+  Each region must have no repeated cell values. See `valid?`.
+  """
+  @spec regions() :: Enum.t
+  @lint {Credo.Check.Refactor.PipeChainStart, false}
+         # see https://github.com/rrrene/credo/issues/280
+  def regions do
+    (for i <- 0..8, do: [row(i), column(i), sector(i)])
+    |> Stream.concat()
   end
 
   @spec valid_region?(puzzle, Enum.t) :: boolean()
