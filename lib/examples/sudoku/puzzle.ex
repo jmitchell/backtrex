@@ -20,10 +20,11 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
   @type cell_map :: %{optional(cell_id) => cell_value}
 
   @typedoc "Sudoku puzzle which maps cell IDs to cell values."
-  @type puzzle :: %Puzzle{cells: cell_map}
+  @type t :: %Puzzle{cells: cell_map}
 
   @doc "`Puzzle` struct that maps cell IDs to cell values."
   defstruct cells: %{}
+
 
   @doc """
   Create `Puzzle` from list of lists of cell values.
@@ -56,7 +57,7 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
           {7, 3} => 4, {7, 4} => 1, {7, 5} => 9, {7, 8} => 5,
           {8, 4} => 8, {8, 7} => 7, {8, 8} => 9}}}
   """
-  @spec from_list([[cell_value]]) :: {:ok, puzzle} | {:error, any()}
+  @spec from_list([[cell_value]]) :: {:ok, t} | {:error, any()}
   def from_list(rows) when length(rows) == 9 do
     cells =
       rows
@@ -87,18 +88,26 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
         c <- 0..8, do: {r, c}
   end
 
+  @doc "Empty cells in the `puzzle`."
+  @spec empty_cells(t) :: Enum.t
+  def empty_cells(puzzle) do
+    cell_ids() |> Stream.filter(fn cell_id ->
+      !(cell_value(puzzle, cell_id) in 1..9)
+    end)
+  end
+
   @doc """
   Get value of cell at `cell_id` in the `puzzle`.
 
   Returns `:_` (unoccupied) if no value associated with the `cell_id`.
   """
-  @spec cell_value(puzzle, cell_id) :: cell_value
+  @spec cell_value(t, cell_id) :: cell_value
   def cell_value(puzzle, {_r, _c} = cell_id) do
     puzzle.cells |> Map.get(cell_id, :_)
   end
 
   @doc "Copy of `puzzle` where `cell_value` is associated with `cell_id`."
-  @spec put_cell(puzzle, cell_id, cell_value) :: puzzle
+  @spec put_cell(t, cell_id, cell_value) :: t
   def put_cell(puzzle, cell_id, cell_value) do
     new_cells = puzzle.cells |> Map.put(cell_id, cell_value)
     %Puzzle{puzzle | cells: new_cells}
@@ -124,7 +133,7 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
       ...> |> Puzzle.valid?
       false
   """
-  @spec valid?(puzzle) :: boolean()
+  @spec valid?(t) :: boolean()
   def valid?(puzzle) do
     regions()
     |> no_counterexample?(&valid_region?(puzzle, &1))
@@ -143,10 +152,11 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
     |> Stream.concat()
   end
 
-  @spec valid_region?(puzzle, Enum.t) :: boolean()
+  @spec valid_region?(t, Enum.t) :: boolean()
   defp valid_region?(puzzle, region) do
     region
     |> Stream.map(&(cell_value(puzzle, &1)))
+    # |> Stream.each(&debug("Checking validity of region #{inspect &1, pretty: true}"))
     |> distinct_numbers?
   end
 
@@ -172,7 +182,7 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
       ...>  puzzle |> Puzzle.put_cell({0, 0}, 1) |> Puzzle.solved?}
       {true, false}
   """
-  @spec solved?(puzzle) :: boolean()
+  @spec solved?(t) :: boolean()
   def solved?(puzzle) do
     filled_in?(puzzle) && valid?(puzzle)
   end
@@ -193,7 +203,7 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
       ...> } |> Puzzle.filled_in?
       true
   """
-  @spec filled_in?(puzzle) :: boolean()
+  @spec filled_in?(t) :: boolean()
   def filled_in?(puzzle) do
     cell_ids()
     |> no_counterexample?(&(cell_value(puzzle, &1) in 1..9))
