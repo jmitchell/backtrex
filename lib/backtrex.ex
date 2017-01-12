@@ -1,5 +1,4 @@
 defmodule Backtrex do
-  @moduledoc false
 
   @typedoc """
   A puzzle with a finite set of `unknown`s, possible `assignment`s
