@@ -147,6 +147,7 @@ defmodule Backtrex do
             """}
         end
       end
+      defp backtrack(_problem, _unknowns, []), do: {:ok, :no_solution}
       defp backtrack(problem, unknowns, assignments) do
         {:error, """
         backtrack/3: Unexpected arguments

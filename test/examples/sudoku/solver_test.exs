@@ -5,20 +5,22 @@ defmodule Backtrex.Examples.Sudoku.Solver.Test do
   alias Backtrex.Examples.Sudoku.Solver
 
   describe "Solver.solve/1" do
-    test "example Sudoku puzzle from Wikipedia article" do
-      {:ok, puzzle} =
-        Puzzle.from_list([
-          [5,   3, :_, :_,  7, :_, :_, :_, :_],
-          [6,  :_, :_,  1,  9,  5, :_, :_, :_],
-          [:_,  9,  8, :_, :_, :_, :_,  6, :_],
-          [8,  :_, :_, :_,  6, :_, :_, :_,  3],
-          [4,  :_, :_,  8, :_,  3, :_, :_,  1],
-          [7,  :_, :_, :_,  2, :_, :_, :_,  6],
-          [:_,  6, :_, :_, :_, :_,  2,  8, :_],
-          [:_, :_, :_,  4,  1,  9, :_, :_,  5],
-          [:_, :_, :_, :_,  8, :_, :_,  7,  9]])
+    def example_puzzle do
+      {:ok, puzzle} = Puzzle.from_list([
+        [5,   3, :_, :_,  7, :_, :_, :_, :_],
+        [6,  :_, :_,  1,  9,  5, :_, :_, :_],
+        [:_,  9,  8, :_, :_, :_, :_,  6, :_],
+        [8,  :_, :_, :_,  6, :_, :_, :_,  3],
+        [4,  :_, :_,  8, :_,  3, :_, :_,  1],
+        [7,  :_, :_, :_,  2, :_, :_, :_,  6],
+        [:_,  6, :_, :_, :_, :_,  2,  8, :_],
+        [:_, :_, :_,  4,  1,  9, :_, :_,  5],
+        [:_, :_, :_, :_,  8, :_, :_,  7,  9]])
+      puzzle
+    end
 
-      {:ok, expected_solution} =
+    def expected_solution do
+      {:ok, solution} =
         Puzzle.from_list([
           [5, 3, 4, 6, 7, 8, 9, 1, 2],
           [6, 7, 2, 1, 9, 5, 3, 4, 8],
@@ -29,10 +31,24 @@ defmodule Backtrex.Examples.Sudoku.Solver.Test do
           [9, 6, 1, 5, 3, 7, 2, 8, 4],
           [2, 8, 7, 4, 1, 9, 6, 3, 5],
           [3, 4, 5, 2, 8, 6, 1, 7, 9]])
+      solution
+    end
 
-      {:ok, :solution, actual_solution} = puzzle |> Solver.solve
+    test "solve example Sudoku puzzle from Wikipedia article" do
+      {:ok, :solution, actual} =
+        example_puzzle()
+        |> Solver.solve
 
-      assert actual_solution == expected_solution
+      assert actual == expected_solution()
+    end
+
+    test "discover there's no solution to modified example puzzle" do
+      result =
+        example_puzzle()
+        |> Puzzle.put_cell({1, 1}, 2)
+        |> Solver.solve
+
+      assert result == {:ok, :no_solution}
     end
   end
 end
