@@ -110,7 +110,7 @@ defmodule Backtrex do
         end
       end
 
-      @spec search(
+      @spec backtrack(
         Backtrex.problem,
         [Backtrex.unknown],
         [Backtrex.assignment])
