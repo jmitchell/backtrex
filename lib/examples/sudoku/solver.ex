@@ -10,10 +10,7 @@ defmodule Backtrex.Examples.Sudoku.Solver do
     |> Enum.to_list
   end
 
-  def initial_value(_puzzle, _cell), do: 1
-
-  def next_value(_puzzle, _cell, v) when v in 1..8, do: {:ok, v + 1}
-  def next_value(_puzzle, _cell, _v), do: :none
+  def values(_puzzle, _cell), do: 1..9
 
   def with_assignments(puzzle, []), do: puzzle
   def with_assignments(puzzle, [{cell_id, value} | assignments]) do
