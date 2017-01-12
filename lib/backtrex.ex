@@ -1,8 +1,6 @@
 defmodule Backtrex do
   @moduledoc false
 
-  import Logger
-
   @typedoc """
   A puzzle with a finite set of `unknown`s, possible `assignment`s
   for each, and an invariant property.
@@ -31,7 +29,7 @@ defmodule Backtrex do
   @typedoc """
   Next value to try.
   """
-  @type next_value :: {:ok, value} | :none
+  @type maybe_value :: {:ok, value} | :none
 
   @typedoc """
   Potential `value` assignment for some `unknown`.
@@ -43,8 +41,8 @@ defmodule Backtrex do
                 | {:error, any()}
 
   @callback unknowns(problem) :: [unknown]
-  @callback initial_value(problem, unknown) :: next_value
-  @callback next_value(problem, unknown, value) :: next_value
+  @callback initial_value(problem, unknown) :: value
+  @callback next_value(problem, unknown, value) :: maybe_value
   @callback with_assignments(problem, [assignment]) :: problem
   @callback valid?(problem) :: boolean()
 
@@ -76,18 +74,11 @@ defmodule Backtrex do
         if problem |> solved? do
           {:ok, :solution, problem}
         else
-          case problem |> initial_value(unknown) do
-            :none ->
-              {:ok, :no_solution}
-            value ->
-              search(problem, us, [{unknown, value}])
-          end
+          init_val = problem |> initial_value(unknown)
+          search(problem, us, [{unknown, init_val}])
         end
       end
       def search(problem, unknowns, assignments) do
-        debug "problem: #{inspect problem, pretty: true}"
-        debug "assignments: #{inspect assignments, pretty: true}"
-
         new_problem = problem |> with_assignments(assignments)
         if new_problem |> valid? do
           case new_problem |> unknowns do
@@ -99,29 +90,24 @@ defmodule Backtrex do
           end
         else
           case assignments do
+            [] ->
+              {:ok, :no_solution}
             [{curr_unk, curr_val} | prev_as] ->
               case new_problem |> next_value(curr_unk, curr_val) do
                 :none ->
-                  info """
-                  Invalid assignment and there are no additional values to
-                  try. Backtracking...
-                  """
+                  # Invalid assignment and no additional values to
+                  # try. Backtracking...
                   backtrack(problem, [curr_unk, unknowns], prev_as)
                 {:ok, new_val} ->
-                  info """
-                  Invalid assignment, #{inspect {curr_unk, curr_val}}.
-
-                  Trying next value #{inspect new_val} instead.
-                  """
+                  # Invalid assignment; trying next value instead.
                   search(problem, unknowns, [{curr_unk, new_val} | prev_as])
                 x ->
-                  {:error,
-                   "next_value/1 returned an invalid term: #{inspect x}"}
+                  {:error, """
+                  next_value/1 callback violated spec.
+                  returned: #{inspect x}
+                  """}
               end
-            [] ->
-              {:error, "no assignments"}
           end
-
         end
       end
 
@@ -133,17 +119,15 @@ defmodule Backtrex do
       defp backtrack(problem, unknowns, [{u, v} | assignments]) do
         case problem |> next_value(u, v) do
           :none ->
-            debug """
-            No more values to try for this assignment either. Continue
-            backtracking.
-            """
+            # No more values to try for this assignment
+            # either. Continue backtracking.
             backtrack(problem, [u | unknowns], assignments)
           {:ok, new_v} ->
             search(problem, unknowns, [{u, new_v} | assignments])
           x ->
             {:error, """
-            backtrack/3: next_value/1 callback returned unexpected
-            term: #{inspect x}
+            backtrack/3: next_value/1 callback violated spec.
+            returned: #{inspect x}
             """}
         end
       end
