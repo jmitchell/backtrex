@@ -156,7 +156,6 @@ defmodule Backtrex.Examples.Sudoku.Puzzle do
   defp valid_region?(puzzle, region) do
     region
     |> Stream.map(&(cell_value(puzzle, &1)))
-    # |> Stream.each(&debug("Checking validity of region #{inspect &1, pretty: true}"))
     |> distinct_numbers?
   end
 

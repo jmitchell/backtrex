@@ -1,17 +1,21 @@
 defmodule Backtrex do
+  @moduledoc """
+  A [backtracking](https://en.wikipedia.org/wiki/Backtracking)
+  behaviour for solving discrete computational problems.
+  """
 
   @typedoc """
-  A puzzle with a finite set of `unknown`s, possible `assignment`s
+  A puzzle with a set of `unknown`s, possible `assignment`s
   for each, and an invariant property.
 
-  Each type of `problem` must have facilities for:
+  Each type of `problem` must have ways to:
 
-  1. enumerating its unknowns (see `c:unknowns`),
-  2. enumerating `value`s that could be assigned to a specified
+  1. enumerate its unknowns (see `c:unknowns`),
+  2. enumerate `value`s that could be assigned to any particular
   `unknown` in a solution (see `c:initial_value` and `c:next_value`),
-  3. incorporating proposed `assignments` (see
-  `c:with_assignments`), and
-  4. checking whether the invariant holds (see `c:valid?`).
+  3. incorporate proposed `assignments` (see `c:with_assignments`),
+  and
+  4. check whether the invariant holds (see `c:valid?`).
   """
   @type problem :: any()
 
