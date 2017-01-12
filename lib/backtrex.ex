@@ -37,7 +37,6 @@ defmodule Backtrex do
 
   @type result :: {:ok, :solution, problem}
                 | {:ok, :no_solution}
-                | {:error, any()}
 
   @callback unknowns(problem) :: [unknown]
   @callback initial_value(problem, unknown) :: value
@@ -100,11 +99,6 @@ defmodule Backtrex do
                 {:ok, new_val} ->
                   # Invalid assignment; trying next value instead.
                   search(problem, unknowns, [{curr_unk, new_val} | prev_as])
-                x ->
-                  {:error, """
-                  next_value/1 callback violated spec.
-                  returned: #{inspect x}
-                  """}
               end
           end
         end
@@ -123,23 +117,9 @@ defmodule Backtrex do
             backtrack(problem, [u | unknowns], assignments)
           {:ok, new_v} ->
             search(problem, unknowns, [{u, new_v} | assignments])
-          x ->
-            {:error, """
-            backtrack/3: next_value/1 callback violated spec.
-            returned: #{inspect x}
-            """}
         end
       end
       defp backtrack(_problem, _unknowns, []), do: {:ok, :no_solution}
-      defp backtrack(problem, unknowns, assignments) do
-        {:error, """
-        backtrack/3: Unexpected arguments
-
-          problem: #{inspect problem, pretty: true}
-          unknowns: #{inspect unknowns, pretty: true}
-          assignments: #{inspect assignments, pretty: true}
-        """}
-      end
 
     end
   end
