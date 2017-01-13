@@ -23,21 +23,18 @@ Add `backtrex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:backtrex, "~> 0.1.0"}]
+  [{:backtrex, "~> 0.1.1"}]
 end
 ```
 
-Backtrex's logging calls currently cause a ~20x performance penalty if
-they aren't purged during compilation. To ensure your project does so,
-add the following to `config/config.exs`:
+Then run `mix do deps.get`.
+
+Backtrex currently makes a lot of Logger.debug calls. To avoid seeing
+them, add the following to `config/config.exs`:
 
 ```elixir
-config :logger,
-  level: :warn,
-  compile_time_purge_level: :warn
+config :logger, level: :warn
 ```
-
-After that run `mix deps.get` and `mix deps.compile`.
 
 ### Usage
 
@@ -112,15 +109,13 @@ end
 ```
 
 `Sandbox.hello_backtrex/0` should return true within 5 seconds or
-so. If it takes much longer or spews a bunch of log messages, run `mix
-deps.clean backtrex` and revisit the notice about logging in
-the [installation section](#installing).
+so.
 
 ## Other applications
 
 Sudoku makes for a good introductory demo, but it doesn't showcase the
-flexibility of Backtrex's design. Here's some applications I'm
-may add:
+flexibility of Backtrex's design. Here's some other applications I
+suspect it could handle.
 
 - incomplete information
   - corn maze of unknown size; visibility limited to what's nearby.
