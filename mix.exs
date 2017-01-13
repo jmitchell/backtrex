@@ -37,7 +37,10 @@ defmodule Backtrex.Mixfile do
       files: ["lib", "mix.exs", "README*", "LICENSE*"],
       maintainers: ["Jacob Mitchell"],
       licenses: ["Apache 2.0"],
-      links: %{"GitHub" => "https://github.com/jmitchell/backtrex"},
+      links: %{
+        "GitHub" => "https://github.com/jmitchell/backtrex",
+        "Docs" => "https://hexdocs.pm/backtrex/0.1.0",
+      },
     ]
   end
 end
