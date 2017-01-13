@@ -60,7 +60,7 @@ defmodule Backtrex do
 
       @spec solve(Backtrex.problem) :: Backtrex.result
       def solve(problem) do
-        info "Attempting to solve problem #{inspect problem, pretty: true, charlists: :as_list}"
+        info fn -> "Attempting to solve problem #{inspect problem, pretty: true, charlists: :as_list}" end
         search(problem, unknowns(problem), [])
       end
 
