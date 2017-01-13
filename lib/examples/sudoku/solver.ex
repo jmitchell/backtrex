@@ -12,15 +12,10 @@ defmodule Backtrex.Examples.Sudoku.Solver do
 
   def values(_puzzle, _cell), do: 1..9
 
-  def with_assignments(puzzle, []), do: puzzle
-  def with_assignments(puzzle, [{cell_id, value} | assignments]) do
-    puzzle
-    |> Puzzle.put_cell(cell_id, value)
-    |> with_assignments(assignments)
-  end
-  def with_assignments(_puzzle, assignments) do
-    {:error,
-     "with_assignments/2: unexpected assignments, #{inspect assignments}"}
+  def with_assignments(puzzle, assignments) do
+    %Puzzle{
+      cells: assignments |> Enum.into(%{}) |> Map.merge(puzzle.cells)
+    }
   end
 
   def valid?(puzzle), do: puzzle |> Puzzle.valid?
