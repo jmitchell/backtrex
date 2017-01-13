@@ -63,6 +63,9 @@ defmodule SudokuSolver do
 end
 ```
 
+In return for implementing these callbacks, Backtrex gives you a
+`SudokuSolver.solve/1` function for free.
+
 The documentation
 at [https://hexdocs.pm/backtrex](https://hexdocs.pm/backtrex) explains
 what Backtrex expects from these callbacks.
