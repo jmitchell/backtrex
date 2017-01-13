@@ -71,14 +71,14 @@ defmodule Backtrex do
       :: Backtrex.result
       defp search(problem, unknowns, assignments) do
         new_problem = problem |> do_with_assignments(assignments)
-        debug """
+        debug fn -> """
         search/3:
 
           problem: #{inspect problem, pretty: true, charlists: :as_list}
           unknowns: #{inspect unknowns, pretty: true, charlists: :as_list}
           assignments: #{inspect assignments, pretty: true, charlists: :as_list}
           problem w/ assignments: #{inspect new_problem, pretty: true, charlists: :as_list}
-        """
+        """ end
         if new_problem |> valid? do
           search_valid(problem, new_problem, unknowns, assignments)
         else
@@ -118,7 +118,7 @@ defmodule Backtrex do
           [u | us] ->
             case new_problem |> values(u) |> split do
               {[curr_value], additional_values} ->
-                debug "search/3: continuing search with #{inspect curr_value} assigned to unknown #{inspect u}, and additional values to try: #{inspect additional_values, charlists: :as_list}"
+                debug fn -> "search/3: continuing search with #{inspect curr_value} assigned to unknown #{inspect u}, and additional values to try: #{inspect additional_values, charlists: :as_list}" end
                 search(original_problem, us, [{{u, curr_value}, additional_values} | assignments])
               {[], _} ->
                 {:ok, :no_solution}
@@ -140,7 +140,7 @@ defmodule Backtrex do
           [{{curr_unk, _curr_val}, additional_vals} | prev_as] ->
             case additional_vals |> split do
               {[new_val], vals} ->
-                debug "search/3: trying next value, #{inspect new_val}, for unknown #{inspect curr_unk}. Additional values to try: #{inspect vals, charlists: :as_list}."
+                debug fn -> "search/3: trying next value, #{inspect new_val}, for unknown #{inspect curr_unk}. Additional values to try: #{inspect vals, charlists: :as_list}." end
                 search(problem, unknowns, [{{curr_unk, new_val}, vals} | prev_as])
               {[], _} ->
                 backtrack(problem, [curr_unk, unknowns], prev_as)
