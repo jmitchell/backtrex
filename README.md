@@ -23,7 +23,7 @@ Add `backtrex` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:backtrex, "~> 0.1.1"}]
+  [{:backtrex, "~> 0.1.2"}]
 end
 ```
 
@@ -47,16 +47,18 @@ defmodule SudokuSolver do
   use Backtrex
   
   def unknowns(puzzle) do
-    puzzle |> SudokuPuzzle.empty_cells
+    SudokuPuzzle.empty_cells(puzzle)
   end
   
   def values(_puzzle, _cell), do: 1..9
   
   def assign(puzzle, cell, value) do
-    puzzle |> SudokuPuzzle.put_cell(cell, value)
+    SudokuPuzzle.put_cell(puzzle, cell, value)
   end
 
-  def valid?(puzzle), do: puzzle |> SudokuPuzzle.valid?
+  def valid?(puzzle) do
+    SudokuPuzzle.valid?(puzzle)
+  end
 end
 ```
 

@@ -1,20 +1,21 @@
 defmodule Backtrex.Examples.Sudoku.Solver do
   @moduledoc false
 
-  alias Backtrex.Examples.Sudoku.Puzzle
   use Backtrex
 
+  alias Backtrex.Examples.Sudoku.Puzzle
+
   def unknowns(puzzle) do
-    puzzle
-    |> Puzzle.empty_cells
-    |> Enum.to_list
+    Puzzle.empty_cells(puzzle)
   end
 
   def values(_puzzle, _cell), do: 1..9
 
   def assign(puzzle, cell, value) do
-    puzzle |> Puzzle.put_cell(cell, value)
+    Puzzle.put_cell(puzzle, cell, value)
   end
 
-  def valid?(puzzle), do: puzzle |> Puzzle.valid?
+  def valid?(puzzle) do
+    Puzzle.valid?(puzzle)
+  end
 end

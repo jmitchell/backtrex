@@ -85,7 +85,7 @@ defmodule Backtrex do
       @spec solve(Backtrex.problem) :: Backtrex.result
       def solve(problem) do
         info fn -> "Attempting to solve problem #{inspect problem, pretty: true, charlists: :as_list}" end
-        search(problem, unknowns(problem), [])
+        search(problem, unknowns(problem) |> Enum.to_list, [])
       end
 
       @spec search(
@@ -127,7 +127,7 @@ defmodule Backtrex do
       :: Backtrex.result
       defp search_valid(original_problem, new_problem, unknowns, assignments) do
         debug "search_valid/3"
-        case new_problem |> unknowns do
+        case new_problem |> unknowns |> Enum.to_list do
           [] ->
             info "Problem solved!"
             {:ok, :solution, new_problem}
