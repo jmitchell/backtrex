@@ -12,12 +12,12 @@ defmodule Backtrex do
 
   Each type of `problem` must have ways to:
 
-  1. enumerate its unknowns (see `c:unknowns`),
+  1. enumerate its unknowns (see `c:Backtrex.unknowns/1`),
   2. enumerate `value`s that could be assigned to any particular
-  `unknown` in a solution (see `c:values`).
-  3. incorporate proposed `assignments` (see `c:with_assignments`),
-  and
-  4. check whether the invariant holds (see `c:valid?`).
+  `unknown` in a solution (see `c:Backtrex.values/2`).
+  3. incorporate proposed assignments of `value`s to `unknown`s (see
+  `c:Backtrex.assign/3`), and
+  4. check whether the invariant holds (see `c:Backtrex.valid?/1`).
   """
   @type problem :: any()
 
@@ -30,11 +30,6 @@ defmodule Backtrex do
   Value that could be assigned to an `unknown`.
   """
   @type value :: any()
-
-  @typedoc """
-  Next value to try.
-  """
-  @type maybe_value :: {:ok, value} | :none
 
   @typedoc """
   Potential `value` assignment for some `unknown`.
@@ -65,15 +60,21 @@ defmodule Backtrex do
   """
   @callback values(problem, unknown) :: Enum.t # of `value`
 
+  @doc """
+  Updated `problem` with `value` assigned to `unknown`.
 
-  @callback with_assignments(problem, [assignment]) :: problem
+  Assignments may be wrong in the sense that they will not lead to a solution.
+  Backtrex maintains a copy of the original problem, and uses the
+  `c:Backtrex.valid?/1` callback to ensure assignments are productive.
+  """
+  @callback assign(problem, unknown, value) :: problem
 
   @doc """
   Return whether `problem` is in a valid state.
 
   An invalid state means there's no way to solve `problem` in its current state.
-  `Backtrex.valid?/1` determines whether to march forward, tackling new unknowns,
-  or backtrack, rewriting the provisional answers that led to this state.
+  This callback determines whether to march forward, tackling new unknowns, or
+  backtrack, rewriting the provisional answers that led to this state.
   """
   @callback valid?(problem) :: boolean()
 
@@ -93,7 +94,12 @@ defmodule Backtrex do
         [Backtrex.assignment_search])
       :: Backtrex.result
       defp search(problem, unknowns, assignments) do
-        new_problem = problem |> do_with_assignments(assignments)
+        new_problem =
+          assignments
+          |> Stream.map(fn {uv, _vs} -> uv end)
+          |> Enum.reduce(problem, fn({unknown, value}, prob) ->
+            assign(prob, unknown, value)
+          end)
         debug fn -> """
         search/3:
 
@@ -107,19 +113,6 @@ defmodule Backtrex do
         else
           search_invalid(problem, unknowns, assignments)
         end
-      end
-
-      @spec do_with_assignments(
-        Backtrex.problem,
-        [Backtrex.assignment_search])
-      :: [Backtrex.assignment]
-      defp do_with_assignments(problem, assignments) do
-        curr_assignments =
-          assignments
-          |> Stream.map(fn {uv, _vs} -> uv end)
-          |> Enum.to_list
-
-        with_assignments(problem, curr_assignments)
       end
 
       # TODO: Consider using a stack of problems instead of

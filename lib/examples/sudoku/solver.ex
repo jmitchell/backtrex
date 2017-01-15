@@ -12,10 +12,8 @@ defmodule Backtrex.Examples.Sudoku.Solver do
 
   def values(_puzzle, _cell), do: 1..9
 
-  def with_assignments(puzzle, assignments) do
-    %Puzzle{
-      cells: assignments |> Enum.into(%{}) |> Map.merge(puzzle.cells)
-    }
+  def assign(puzzle, cell, value) do
+    puzzle |> Puzzle.put_cell(cell, value)
   end
 
   def valid?(puzzle), do: puzzle |> Puzzle.valid?
