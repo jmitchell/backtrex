@@ -49,9 +49,32 @@ defmodule Backtrex do
   @type result :: {:ok, :solution, problem}
                 | {:ok, :no_solution}
 
+  @doc """
+  Open questions in `problem` that a solution must answer.
+
+  In Sudoku this would be the puzzle's blank cells.
+  """
   @callback unknowns(problem) :: [unknown]
+
+  @doc """
+  Potential answers to an `unknown` in the context of a `problem`.
+
+  Every cell in Sudoku, for instance, must be a number between 1 and 9,
+  inclusive, so a Sudoku solver would return `1..9`. In this case the result
+  doesn't depend on `puzzle` or `unknown`, but for other problems it might.
+  """
   @callback values(problem, unknown) :: Enum.t # of `value`
+
+
   @callback with_assignments(problem, [assignment]) :: problem
+
+  @doc """
+  Return whether `problem` is in a valid state.
+
+  An invalid state means there's no way to solve `problem` in its current state.
+  `Backtrex.valid?/1` determines whether to march forward, tackling new unknowns,
+  or backtrack, rewriting the provisional answers that led to this state.
+  """
   @callback valid?(problem) :: boolean()
 
   defmacro __using__(_) do
