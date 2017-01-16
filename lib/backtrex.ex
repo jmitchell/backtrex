@@ -49,7 +49,7 @@ defmodule Backtrex do
 
   In Sudoku this would be the puzzle's blank cells.
   """
-  @callback unknowns(problem) :: [unknown]
+  @callback unknowns(problem) :: Enum.t # of `unknown`
 
   @doc """
   Potential answers to an `unknown` in the context of a `problem`.

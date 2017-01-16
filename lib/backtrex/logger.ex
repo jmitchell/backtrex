@@ -9,27 +9,22 @@ defmodule Backtrex.Logger do
 
   defmacro info(msg) do
     quote do
-      log(:info, unquote(msg))
+      log(&Logger.info/2, unquote(msg))
     end
   end
 
   defmacro debug(msg) do
     quote do
-      log(:debug, unquote(msg))
+      log(&Logger.debug/2, unquote(msg))
     end
   end
 
-  defmacro log(level, chardata_or_fun, metadata \\ []) do
+  defmacro log(logger_macro, chardata_or_fun, metadata \\ []) do
     quote do
       pkg_log_level = :backtrex |> Application.get_all_env |> Keyword.get(:log_level, :warn)
       global_log_level = Logger.level()
       call_logger = fn ->
-        macro =
-          case unquote(level) do
-            :info -> &Logger.info/2
-            :debug -> &Logger.debug/2
-          end
-        macro.(unquote(chardata_or_fun), unquote(metadata))
+        unquote(logger_macro).(unquote(chardata_or_fun), unquote(metadata))
       end
       case Logger.compare_levels(pkg_log_level, global_log_level) do
         :lt ->
@@ -41,6 +36,5 @@ defmodule Backtrex.Logger do
       end
     end
   end
-
 
 end
