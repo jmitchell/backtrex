@@ -4,7 +4,7 @@ defmodule Backtrex do
   behaviour for solving discrete computational problems.
   """
 
-  import Logger
+  use Backtrex.Logger
 
   @typedoc """
   A puzzle with a set of `unknown`s, possible `assignment`s
