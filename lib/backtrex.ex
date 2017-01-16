@@ -4,6 +4,7 @@ defmodule Backtrex do
   behaviour for solving discrete computational problems.
   """
 
+  require Logger
   use Backtrex.Logger
 
   @typedoc """
