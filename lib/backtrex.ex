@@ -82,113 +82,123 @@ defmodule Backtrex do
     quote location: :keep do
       @behaviour Backtrex
 
-      @spec solve(Backtrex.problem) :: Backtrex.result
       def solve(problem) do
-        info fn -> "Attempting to solve problem #{inspect problem, pretty: true, charlists: :as_list}" end
-        search(problem, unknowns(problem) |> Enum.to_list, [])
+        Backtrex.solve(__MODULE__, problem)
       end
-
-      @spec search(
-        Backtrex.problem,
-        [Backtrex.unknown],
-        [Backtrex.assignment_search])
-      :: Backtrex.result
-      defp search(problem, unknowns, assignments) do
-        new_problem =
-          assignments
-          |> Stream.map(fn {uv, _vs} -> uv end)
-          |> Enum.reduce(problem, fn({unknown, value}, prob) ->
-            assign(prob, unknown, value)
-          end)
-        debug fn -> """
-        search/3:
-
-          problem: #{inspect problem, pretty: true, charlists: :as_list}
-          unknowns: #{inspect unknowns, pretty: true, charlists: :as_list}
-          assignments: #{inspect assignments, pretty: true, charlists: :as_list}
-          problem w/ assignments: #{inspect new_problem, pretty: true, charlists: :as_list}
-        """ end
-        if new_problem |> valid? do
-          search_valid(problem, new_problem, unknowns, assignments)
-        else
-          search_invalid(problem, unknowns, assignments)
-        end
-      end
-
-      # TODO: Consider using a stack of problems instead of
-      # `original_problem` and `new_problem`. May simplify code AND
-      # reduce `do_with_assignments/2` as a potential bottleneck
-      # (profile first, though).
-      @spec search_valid(
-        Backtrex.problem,
-        Backtrex.problem,
-        [Backtrex.unknown],
-        [Backtrex.assignment_search])
-      :: Backtrex.result
-      defp search_valid(original_problem, new_problem, unknowns, assignments) do
-        debug "search_valid/3"
-        case new_problem |> unknowns |> Enum.to_list do
-          [] ->
-            info "Problem solved!"
-            {:ok, :solution, new_problem}
-          [u | us] ->
-            case new_problem |> values(u) |> split do
-              {[curr_value], additional_values} ->
-                debug fn -> "search/3: continuing search with #{inspect curr_value} assigned to unknown #{inspect u}, and additional values to try: #{inspect additional_values, charlists: :as_list}" end
-                search(original_problem, us, [{{u, curr_value}, additional_values} | assignments])
-              {[], _} ->
-                {:ok, :no_solution}
-            end
-        end
-      end
-
-      @spec search_invalid(
-        Backtrex.problem,
-        [Backtrex.unknown],
-        [Backtrex.assignment_search])
-      :: Backtrex.result
-      defp search_invalid(problem, unknowns, assignments) do
-        debug "search_invalid/3"
-        case assignments do
-          [] ->
-            info "No solution: invalid problem"
-            {:ok, :no_solution}
-          [{{curr_unk, _curr_val}, additional_vals} | prev_as] ->
-            case additional_vals |> split do
-              {[new_val], vals} ->
-                debug fn -> "search/3: trying next value, #{inspect new_val}, for unknown #{inspect curr_unk}. Additional values to try: #{inspect vals, charlists: :as_list}." end
-                search(problem, unknowns, [{{curr_unk, new_val}, vals} | prev_as])
-              {[], _} ->
-                backtrack(problem, [curr_unk, unknowns], prev_as)
-            end
-        end
-      end
-
-      @spec split(Enum.t) :: {[any()], Enum.t}
-      @spec split(Enum.t, non_neg_integer()) :: {[any()], Enum.t}
-      defp split(stream, count \\ 1) when count >= 0 do
-        # Probably a more efficient way to do this. See
-        # https://elixirforum.com/t/enum-split-2-which-does-not-force-the-tail-of-a-stream/1900/8
-        # and https://github.com/tallakt/stream_split
-        {stream |> Stream.take(count) |> Enum.to_list,
-         stream |> Stream.drop(count)}
-      end
-
-      @spec backtrack(
-        Backtrex.problem,
-        [Backtrex.unknown],
-        [Backtrex.assignment_search])
-      :: Backtrex.result
-      defp backtrack(problem, unknowns, [{{u, _old_v}, values} | assignments]) do
-        case values |> split(1) do
-          {[], _} ->
-            backtrack(problem, [u | unknowns], assignments)
-          {[new_v], vs} ->
-            search(problem, unknowns, [{{u, new_v}, vs} | assignments])
-        end
-      end
-      defp backtrack(_problem, _unknowns, []), do: {:ok, :no_solution}
-
     end
   end
+
+  @spec solve(module, problem) :: result
+  def solve(module, problem) do
+    info fn -> "Attempting to solve problem #{inspect problem, pretty: true}" end
+    unknowns = apply(module, :unknowns, [problem]) |> Enum.to_list
+    search(module, problem, unknowns, [])
+  end
+
+  @spec search(
+    module,
+    problem,
+    [unknown],
+    [assignment_search])
+  :: result
+  def search(module, problem, unknowns, assignments) do
+    new_problem =
+      assignments
+      |> Stream.map(fn {uv, _vs} -> uv end)
+      |> Enum.reduce(problem, fn({unknown, value}, prob) ->
+        apply(module, :assign, [prob, unknown, value])
+      end)
+      debug fn -> """
+      search/3:
+
+      problem: #{inspect problem, pretty: true, charlists: :as_list}
+      unknowns: #{inspect unknowns, pretty: true, charlists: :as_list}
+      assignments: #{inspect assignments, pretty: true, charlists: :as_list}
+      problem w/ assignments: #{inspect new_problem, pretty: true, charlists: :as_list}
+      """ end
+      if apply(module, :valid?, [new_problem]) do
+        search_valid(module, problem, new_problem, unknowns, assignments)
+      else
+        search_invalid(module, problem, unknowns, assignments)
+      end
+  end
+
+  # TODO: Consider using a stack of problems instead of
+  # `original_problem` and `new_problem`. May simplify code AND
+  # reduce `do_with_assignments/2` as a potential bottleneck
+  # (profile first, though).
+
+  @spec search_valid(
+    module,
+    problem,
+    problem,
+    [unknown],
+    [assignment_search])
+  :: result
+  defp search_valid(module, original_problem, new_problem, _unknowns, assignments) do
+    debug "search_valid/3"
+    case apply(module, :unknowns, [new_problem]) |> Enum.to_list do
+      [] ->
+        info "Problem solved!"
+        {:ok, :solution, new_problem}
+      [u | us] ->
+        case apply(module, :values, [new_problem, u]) |> split do
+          {[curr_value], additional_values} ->
+            debug fn -> "search/3: continuing search with #{inspect curr_value} assigned to unknown #{inspect u}, and additional values to try: #{inspect additional_values, charlists: :as_list}" end
+            search(module, original_problem, us, [{{u, curr_value}, additional_values} | assignments])
+          {[], _} ->
+            {:ok, :no_solution}
+        end
+    end
+  end
+
+  @spec search_invalid(
+    module,
+    problem,
+    [unknown],
+    [assignment_search])
+  :: result
+  defp search_invalid(module, problem, unknowns, assignments) do
+    debug "search_invalid/3"
+    case assignments do
+      [] ->
+        info "No solution: invalid problem"
+        {:ok, :no_solution}
+      [{{curr_unk, _curr_val}, additional_vals} | prev_as] ->
+        case additional_vals |> split do
+          {[new_val], vals} ->
+            debug fn -> "search/3: trying next value, #{inspect new_val}, for unknown #{inspect curr_unk}. Additional values to try: #{inspect vals, charlists: :as_list}." end
+            search(module, problem, unknowns, [{{curr_unk, new_val}, vals} | prev_as])
+          {[], _} ->
+            backtrack(module, problem, [curr_unk, unknowns], prev_as)
+        end
+    end
+  end
+
+  @spec backtrack(
+    module,
+    problem,
+    [unknown],
+    [assignment_search])
+  :: result
+  defp backtrack(module, problem, unknowns, [{{u, _old_v}, values} | assignments]) do
+    case values |> split(1) do
+      {[], _} ->
+        backtrack(module, problem, [u | unknowns], assignments)
+      {[new_v], vs} ->
+        search(module, problem, unknowns, [{{u, new_v}, vs} | assignments])
+    end
+  end
+  defp backtrack(_module, _problem, _unknowns, []), do: {:ok, :no_solution}
+
+  @spec split(Enum.t) :: {[any()], Enum.t}
+  @spec split(Enum.t, non_neg_integer()) :: {[any()], Enum.t}
+  defp split(stream, count \\ 1) when count >= 0 do
+    # Probably a more efficient way to do this. See
+    # https://elixirforum.com/t/enum-split-2-which-does-not-force-the-tail-of-a-stream/1900/8
+    # and https://github.com/tallakt/stream_split
+    {stream |> Stream.take(count) |> Enum.to_list,
+     stream |> Stream.drop(count)}
+  end
+
 end
