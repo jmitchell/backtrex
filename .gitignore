@@ -21,3 +21,6 @@ erl_crash.dump
 
 # Emacs backup files
 *~
+
+# Profiling output directory
+/profile

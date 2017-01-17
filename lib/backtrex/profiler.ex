@@ -1,18 +1,72 @@
 defmodule Backtrex.Profiler do
   alias Backtrex.Examples.Sudoku
 
+  @spec backends() :: [atom()]
+  def backends do
+    [
+      :naive_sequential,
+    ]
+  end
+
+  @spec problems() :: [{module(), [{atom(), any()}]}]
+  def problems do
+    [
+      {Sudoku.Solver,
+       [
+         quick_puzzle: example_puzzle()
+       ]},
+    ]
+  end
+
+  def output_dir(dir \\ "profile") do
+    File.mkdir_p!(dir)
+    dir
+  end
+
+  def combos do
+    for backend <- backends(),
+        {frontend, inputs} <- problems() do
+      for input <- inputs, do: {backend, frontend, input}
+    end
+    |> Enum.concat()
+  end
+
+  def combo_name({b, f, {n, _}}) do
+    "#{inspect b}-#{inspect f}-#{inspect n}"
+    |> String.replace(":", "")
+  end
+
+  def profile do
+    eflame()
+    fprof()
+  end
+
   def eflame do
-    :eflame.apply(&run_test/0, [])
+    dir = output_dir()
+    combos()
+    |> Enum.each(fn combo ->
+      fname = Path.join(dir, "stacks-#{combo_name(combo)}.out")
+      :eflame.apply(:normal_with_children, fname, &run_test/1, [combo])
+    end)
   end
 
   def fprof do
-    :fprof.apply(&run_test/0, [])
-    :fprof.profile()
-    :fprof.analyse([
-      callers: true,
-      sort: :own,
-      totals: true,
-      details: true])
+    dir = output_dir()
+    combos()
+    |> Enum.each(fn combo ->
+      trace_file = Path.join(dir, "fprof-#{combo_name(combo)}.trace") |> to_charlist
+      analysis_file = Path.join(dir, "fprof-#{combo_name(combo)}.analysis") |> to_charlist
+      :fprof.apply(&run_test/1, [combo], [
+                     {:file, trace_file}
+                   ])
+      :fprof.profile(file: trace_file)
+      :fprof.analyse([
+        dest: analysis_file,
+        callers: true,
+        sort: :own,
+        totals: true,
+        details: true])
+    end)
   end
 
   def example_puzzle do
@@ -29,7 +83,7 @@ defmodule Backtrex.Profiler do
     puzzle
   end
 
-  def run_test do
-    {:ok, :solution, _} = example_puzzle() |> Sudoku.Solver.solve
+  def run_test({backend, frontend, {_name, input}}) do
+    {:ok, :solution, _} = apply(frontend, :solve, [input, backend])
   end
 end
