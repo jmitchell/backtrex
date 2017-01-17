@@ -14,7 +14,7 @@ defmodule Backtrex.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger],
+    [extra_applications: [:logger, :eflame],
      applications: [:logger]]   # format expected by Elixir 1.3
   end
 
@@ -22,6 +22,7 @@ defmodule Backtrex.Mixfile do
     [
       {:credo, "~> 0.5", only: [:dev, :test]},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
+      {:eflame, ~r/.*/, git: "https://github.com/proger/eflame.git", compile: "rebar compile"},
       {:ex_doc, "~> 0.14", only: :dev},
     ]
   end
