@@ -5,6 +5,16 @@ defmodule Backtrex.Profiler do
     :eflame.apply(&run_test/0, [])
   end
 
+  def fprof do
+    :fprof.apply(&run_test/0, [])
+    :fprof.profile()
+    :fprof.analyse([
+      callers: true,
+      sort: :own,
+      totals: true,
+      details: true])
+  end
+
   def example_puzzle do
     {:ok, puzzle} = Sudoku.Puzzle.from_list([
       [5,   3, :_, :_,  7, :_, :_,  1,  2],
