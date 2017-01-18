@@ -18,11 +18,6 @@ defmodule Backtrex.Profiler do
     ]
   end
 
-  def output_dir(dir \\ "profile") do
-    File.mkdir_p!(dir)
-    dir
-  end
-
   def combos do
     for backend <- backends(),
         {frontend, inputs} <- problems() do
@@ -36,22 +31,25 @@ defmodule Backtrex.Profiler do
     |> String.replace(":", "")
   end
 
-  def profile do
-    eflame()
-    fprof()
+  def profile(dir \\ "./profile") do
+    if !File.exists?(dir) do
+      File.mkdir_p!(dir)
+    end
+
+    eflame(dir)
+    fprof(dir)
   end
 
-  def eflame do
-    dir = output_dir()
+  def eflame(dir) do
     combos()
     |> Enum.each(fn combo ->
       fname = Path.join(dir, "stacks-#{combo_name(combo)}.out")
-      :eflame.apply(:normal_with_children, fname, &run_test/1, [combo])
+      :eflame.apply(:normal_with_children, fname, __MODULE__, :run_test, [combo])
+      System.cmd("bash", ["./script/make_flamegraph.sh", fname])
     end)
   end
 
-  def fprof do
-    dir = output_dir()
+  def fprof(dir) do
     combos()
     |> Enum.each(fn combo ->
       trace_file = Path.join(dir, "fprof-#{combo_name(combo)}.trace") |> to_charlist
@@ -85,5 +83,9 @@ defmodule Backtrex.Profiler do
 
   def run_test({backend, frontend, {_name, input}}) do
     {:ok, :solution, _} = apply(frontend, :solve, [input, backend])
+  end
+
+  def run_test do
+    example_puzzle() |> Backtrex.Examples.Sudoku.Solver.solve
   end
 end
