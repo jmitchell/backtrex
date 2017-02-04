@@ -16,7 +16,7 @@ defmodule Backtrex.Mixfile do
   end
 
   def application do
-    [extra_applications: [:logger, :eflame],
+    [extra_applications: [:logger, :eflame, :mix],
      applications: [:logger]]   # format expected by Elixir 1.3
   end
 
