@@ -10,11 +10,13 @@ defmodule Backtrex.Mixfile do
      elixirc_options: [warnings_as_errors: true],
      description: description(),
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     dialyzer: [ignore_warnings: ".dialyzer_ignore"],
+    ]
   end
 
   def application do
-    [extra_applications: [:logger, :eflame],
+    [extra_applications: [:logger, :eflame, :mix],
      applications: [:logger]]   # format expected by Elixir 1.3
   end
 
