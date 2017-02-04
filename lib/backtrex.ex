@@ -82,8 +82,10 @@ defmodule Backtrex do
     quote location: :keep do
       @behaviour Backtrex
 
-      def solve(problem) do
-        Backtrex.solve(__MODULE__, problem)
+      def solve(problem, backtracker \\ :naive_sequential) do
+        case backtracker do
+          :naive_sequential -> Backtrex.solve(__MODULE__, problem)
+        end
       end
     end
   end

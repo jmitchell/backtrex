@@ -10,11 +10,13 @@ defmodule Backtrex.Mixfile do
      elixirc_options: [warnings_as_errors: true],
      description: description(),
      package: package(),
-     deps: deps()]
+     deps: deps(),
+     dialyzer: [ignore_warnings: ".dialyzer_ignore"],
+    ]
   end
 
   def application do
-    [extra_applications: [:logger],
+    [extra_applications: [:logger, :eflame, :mix],
      applications: [:logger]]   # format expected by Elixir 1.3
   end
 
@@ -22,6 +24,7 @@ defmodule Backtrex.Mixfile do
     [
       {:credo, "~> 0.5", only: [:dev, :test]},
       {:dialyxir, "~> 0.4", only: [:dev], runtime: false},
+      {:eflame, ~r/.*/, git: "https://github.com/proger/eflame.git", compile: "rebar compile"},
       {:ex_doc, "~> 0.14", only: :dev},
     ]
   end
