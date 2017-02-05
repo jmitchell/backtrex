@@ -11,8 +11,7 @@ defmodule Backtrex.Examples.Password.Cracker.Test do
     end
 
     def expected_solution do
-      {:ok, solution} = %Authenticator{secret: 'dog', guess: 'dog'}
-      solution
+      %Authenticator{secret: 'dog', guess: 'dog'}
     end
 
     test "crack 3-character password" do
