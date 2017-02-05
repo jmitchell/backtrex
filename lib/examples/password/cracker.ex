@@ -5,20 +5,35 @@ defmodule Backtrex.Examples.Password.Cracker do
 
   alias Backtrex.Examples.Password.Authenticator
 
-  def unknowns(_authenticator) do
-    # assume password is 3 characters long
-    0..2
+  # TODO: Support a range of lengths rather than a single precise
+  # length.
+  @pw_length 3
+
+
+  def unknowns(authenticator) do
+    assign_count = Enum.count(authenticator.guess)
+    max_index = @pw_length - 1
+
+    if assign_count > max_index do
+      []
+    else
+      assign_count..max_index
+    end
   end
 
   def values(_authenticator, _index), do: ?a..?z
 
   def assign(authenticator, index, value) do
-    IO.puts "guess: #{inspect authenticator.guess}"
-    new_guess = List.replace_at(authenticator.guess, index, value)
+    new_guess = if Enum.count(authenticator.guess) == @pw_length do
+      List.replace_at(authenticator.guess, index, value)
+    else
+      List.insert_at(authenticator.guess, index, value)
+    end
     %Authenticator{authenticator | guess: new_guess}
   end
 
   def valid?(authenticator) do
-    Authenticator.authenticates?(authenticator)
+    Enum.count(authenticator.guess) < @pw_length ||
+      Authenticator.authenticates?(authenticator)
   end
 end
